@@ -225,6 +225,7 @@ int otsu_th(const Mat& im_in, int xmax,int ymax)	{
 		}
 
 
+
 	/* calculation of probability density */
 	int numeroPixel = (xmax * ymax);
 
