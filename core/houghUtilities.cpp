@@ -17,7 +17,6 @@ int xGradient(Mat image, int x, int y){
 }
 //--------------------------------------------------------------------------------------------------------------------
 
-
 /*
  * Computes the y component of the gradient vector
  * at a given point in a image
