@@ -9,11 +9,11 @@
  * @param x			X position of the pixel that represents the center of Sobel gradien in this step
  * @param y			Y position of the pixel that represents the center of Sobel gradien in this step
  *
- * @return int		Value of Sobel gradient in X axis
+ * @return float		Value of Sobel gradient in X axis
  */
-int xGradient(Mat image, int x, int y){
-    return image.at<int>(y-1, x-1) + 2*image.at<int>(y, x-1) + image.at<int>(y+1, x-1)
-    	  -image.at<int>(y-1, x+1) - 2*image.at<int>(y, x+1) - image.at<int>(y+1, x+1);
+float xGradient(Mat image, int x, int y){
+    return image.at<float>(y-1, x-1) + 2*image.at<float>(y, x-1) + image.at<float>(y+1, x-1)
+    	  -image.at<float>(y-1, x+1) - 2*image.at<float>(y, x+1) - image.at<float>(y+1, x+1);
 }
 //--------------------------------------------------------------------------------------------------------------------
 
@@ -26,12 +26,12 @@ int xGradient(Mat image, int x, int y){
  * @param x			X position of the pixel that represents the center of Sobel gradien in this step
  * @param y			Y position of the pixel that represents the center of Sobel gradien in this step
  *
- * @return int		Value of Sobel gradient in Y axis
+ * @return float		Value of Sobel gradient in Y axis
  */
 
-int yGradient(Mat image, int x, int y){
-    return image.at<int>(y-1, x-1) + 2*image.at<int>(y-1, x) + image.at<int>(y-1, x+1)
-    	  -image.at<int>(y+1, x-1) - 2*image.at<int>(y+1, x) - image.at<int>(y+1, x+1);
+float yGradient(Mat image, int x, int y){
+    return image.at<float>(y-1, x-1) + 2*image.at<float>(y-1, x) + image.at<float>(y-1, x+1)
+    	  -image.at<float>(y+1, x-1) - 2*image.at<float>(y+1, x) - image.at<float>(y+1, x+1);
 }
 //--------------------------------------------------------------------------------------------------------------------
 
@@ -49,8 +49,8 @@ Mat gradient(const Mat& im_in){
 	int ymax = s.width;
 
 	float gx, gy, sum;
-	Mat image(xmax,ymax, CV_32SC1, Scalar(0));
-
+	//Mat image(xmax,ymax, CV_32SC1, Scalar(0));
+	Mat image(xmax,ymax, CV_32FC1, Scalar(0));
 	for(int y = 1; y < im_in.rows - 1; y++){
 		for(int x = 1; x < im_in.cols - 1; x++){
 			gx = xGradient(im_in, x, y);
@@ -61,20 +61,30 @@ Mat gradient(const Mat& im_in){
 			//valor_Pixel = sum > 255 ? 255:sum;
 			//valor_Pixel = sum < 0 ? 0 : sum;
 			//image.at<uchar>(y,x) = valor_Pixel;
-			image.at<int>(y,x) = sum;
+			image.at<float>(y,x) = sum;
 		}
 	}
 	imwrite( "gradient.tiff", image );
-	double min,max;
-	Point min_loc, max_loc;
-	minMaxLoc(image, &min, &max, &min_loc, &max_loc);
-	cout << "Max: " << max << endl;
+	//double min,max;
+	//Point min_loc, max_loc;
+	//minMaxLoc(image, &min, &max, &min_loc, &max_loc);
+/*
+	double min;
+	double max;
+	minMaxIdx(image, &min, &max);
+	cout << "Maxxxx:%f " << max << "Min: " << min << endl;
+	Mat adjMap;
+	convertScaleAbs(image, adjMap, 255 / max);
+	namedWindow("gradiente.tiff", CV_WINDOW_AUTOSIZE);
+	imshow("gradiente.tiff", adjMap);
 
-	imshow("gradient.tiff", (image/4294967296)*255);
+
+
 
 
 
 	waitKey(0);
+	*/
 	return image;
 }
 //--------------------------------------------------------------------------------------------------------------------
@@ -170,6 +180,7 @@ Mat edge(const Mat& binarized, const Mat& gradient){
 
 	Mat edgeImage(xmax,ymax, CV_8UC1, Scalar(0));
 
+
 	for (int i=0; i < xmax; i++){
 		for (int j=0; j < ymax; j++){
 			//If both pixels are equals and white, then we apply white to the final image (AND Operator)
@@ -179,6 +190,12 @@ Mat edge(const Mat& binarized, const Mat& gradient){
 				edgeImage.at<uchar>(i,j) = 0;
 		}
 	}
+
+	double min;
+		double max;
+		minMaxIdx(edgeImage, &min, &max);
+		cout << "Max: " << max << "Minnn: " << min << endl;
+		waitKey(0);
 /*
 	imwrite( "edge.tiff", edgeImage );
 	imwrite( "binary.tiff", binarized );
@@ -187,14 +204,14 @@ Mat edge(const Mat& binarized, const Mat& gradient){
 	Mat image;
 	binarized.convertTo(image, CV_32SC1);
 	imwrite( "image.tiff", image );
-
+*/
 	imshow("edgeimage", edgeImage);
 	waitKey(0);
 	imshow("binarizada", binarized);
 	waitKey(0);
 	imshow("gradiente", gradient);
 	waitKey(0);
-*/
+
 
 
 	return edgeImage;

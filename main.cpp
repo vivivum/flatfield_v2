@@ -39,7 +39,8 @@ int main(int argc, char** argv) {
 		imageName[9] = 48 + i;					//El 48 es el 0 en ASCII, con lo que sustituimos la X por el numero de la imagen en cada pasada en la posicion 9
 		
 		datacube.push_back(imread(imageName, -1));
-		datacube[i].convertTo(datacube[i], CV_64F);	//OJO leer un solo canal CV_32FC1!!!!!!!!!!!
+		//datacube[i].convertTo(datacube[i], CV_64FC1);	//OJO leer un solo canal CV_32FC1!!!!!!!!!!!
+		datacube[i].convertTo(datacube[i], CV_32FC1);	//OJO leer un solo canal CV_32FC1!!!!!!!!!!!
 
 	}
 
@@ -64,7 +65,7 @@ int main(int argc, char** argv) {
 	if(lmax%2 == 0)		//Compruebo que sea impar
 		lmax++;
 
-	cout << "LMAX: " << lmax << endl;
+	cout << "LMAXXX: " << lmax << endl;
 	//-------------------------------------------------
 
 	//****************************************************************************************
@@ -92,6 +93,8 @@ int main(int argc, char** argv) {
 	}
 	fs.close();
 
+
+
 	//****************************************************************************************
 	//OPERACION ROTADA, VOLVEMOS A HACER LA MISMA OPERACION CON LAS IMAGENES ROTADAS Y EL FLIP
 	Mat fliped;
@@ -100,7 +103,7 @@ int main(int argc, char** argv) {
 	ofstream fs2("EstadisticasdeCentro_rotados.txt");
 	for(int i=0; i < NUMERO_IMAGENES; i++){
 		flip(rotate(datacube[i], -90),fliped,1);
-		matrizResultadosHough2.push_back(calcularHough(fliped, 960)); 	//Es una matriz de la dimension lmax*4 (votacion, x, y, radio)
+		matrizResultadosHough2.push_back(calcularHough(fliped, RADIO_INICIAL)); 	//Es una matriz de la dimension lmax*4 (votacion, x, y, radio)
 
 		#ifdef STATS
 			for (int j=0; j < lmax;j++){

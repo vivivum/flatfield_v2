@@ -24,8 +24,8 @@ using namespace std;
 #define RADIO_INICIAL 		960
 
 
-int xGradient(Mat image, int x, int y);
-int yGradient(Mat image, int x, int y);
+float xGradient(Mat image, int x, int y);
+float yGradient(Mat image, int x, int y);
 Mat gradient(const Mat& im_in);
 //Mat dilate(Mat& image);
 Mat erode(const Mat& im_in);
