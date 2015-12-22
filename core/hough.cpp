@@ -1,80 +1,85 @@
 #include "hough.h"
+#include "houghUtilities.h"
 
 /**
  *	Calculates Maximum matrix in each turn, changing circle radius value
  *
- *  @param img			Binarized image with its edge calculated
- *  @param radio 		Approximate radius of the circumference
+ *  @param puntos		Conjinto de puntos (obtained from Binarized image ) sobre el circulo para estimar coordenadas del centro y radio
+ *  @param Centro 		punto central estimado
+ *   @param radio 		Approximate radius of the circumference
  *
- *  @return matrizMaximo 	Return maximum matrix
+ *  @return centro  	punto central de salida
  */
 
-double** hough(const Mat& img, int radio){
+double** hough(const Vector<Point> puntos, Point Centro, int radio ){
 	//Variables de la funcion
 	//cout << "hough" << endl;
 	double r;
-	int i,j;
 	double det;
-	int a,b;
+	int aa,bb;
+	float a,b;
 	int lmax;
+	int dimensionAcumulador = 200;//ojo que es uno mas
 
 	//Contendran los valores y posiciones de los pixeles max y min de la imagen
 	double min,max;
 	Point min_loc, max_loc;
 
-	//Obtenemos las dimensiones de la imagen
-	Size s = img.size();
-	int xmax = s.height;
-	int ymax = s.width;
 
-	//Calculamos cuantas pasadas realizaremos teniendo en cuenta el tamaño de la imagen y nos aseguramos que se un numero impar
-	lmax = (double)PORCENTAJE/100 * xmax;
+	float paso=0.1;
+	float Xmin,Xmax;
+	float Ymin,Ymax;
+	Xmin=Centro.x-paso*(dimensionAcumulador/2);// Xmin and Xmax are boundaries of coordinates of initial center
+	Xmax=Centro.x+paso*(dimensionAcumulador/2);
+	Ymin=Centro.y-paso*(dimensionAcumulador/2);// Ymin and Ymax are boundaries of coordinates of initial center
+	Ymax=Centro.y+paso*(dimensionAcumulador/2);
+
+	//Calculamos cuantas pasadas realizaremos teniendo en cuenta el tamaño
+	//de la imagen y nos aseguramos que se un numero impar
+	lmax = (double)PORCENTAJE/100 * Xmax;
 	if(lmax%2 == 0)
 		lmax++;
 
 	//Creamos la matriz de Maximos, la cual contendra los mejores candidatos de cada pasada
 	double** matrizMaximo = new double*[lmax];
 	for (int i = 0; i < lmax; ++i)
-		matrizMaximo[i] = new double[4];		// Es de dimension 4 por contener el valor, posX, posY y el radio
+		matrizMaximo[i] = new double[4];		// Es de dimension 4 por contener: el valor votacion, posX, posY y el radio
 
 	//Recorremos lmax veces la imagenes cambiando el radio
 	for(int l = 1; l <= lmax; l++){
 		//Calculamos el radio de esta pasada
 		r=radio + (l - ((int)(lmax/2)+1))*FACTOR_RADIO;
 
+		//Dimensiones del acumulador 200x200 pixeles
 		//Inicializamos el Acumulador
-		Mat acu(xmax,ymax, CV_16UC1, Scalar(0));
-		for (i=0; i < xmax; i++){
-			for (j=0; j < ymax; j++){
-				int valorPixel = (img.at<uchar>(j,i));
-				if(valorPixel == MAX_BRIGHTNESS_8){
-					//int a_min = xmax/2 - radio*PORCENTAJE_CENTRO;
-					//int a_max = xmax/2 + radio*PORCENTAJE_CENTRO;
-					// int rango=a_max-a_min+1;		//representa el número de pixels donde se busca la coordenada Xc del centro del disco
-					//for(a=a_min; a < a_max; a++){
+		Mat acu(dimensionAcumulador,dimensionAcumulador, CV_16UC1, Scalar(0));
 
-					for(a=0; a < xmax; a++){
-						det = r*r - (i-a)*(i-a);
-						if(det > 0){
-							b=round(j-sqrt(det));
-							//if((b > a_min) && (b < a_max)){
-							if((b > 0) && (b < ymax)){
-								acu.at<ushort>(a,b) = acu.at<ushort>(a,b)+1;
-							}
-						}
-					}//Final For del A
-				}//Final If
+
+		for(unsigned int h=0; h < puntos.size();h++){//get points from vector point puntos
+			a=Xmin;
+			while (a<=Xmax) {
+			//for(a=Xmi; a < Xmax; a++){
+				det = r*r - (puntos[h].x-a)*(puntos[h].x-a);
+				if(det > 0){
+					b=(puntos[h].y-sqrt(det));
+					if((b > Ymin) && (b < Ymax)){
+						aa=round((a-Xmin)/paso);
+						bb=round((b-Ymin)/paso);
+						acu.at<ushort>(aa,bb) = acu.at<ushort>(aa,bb)+1;
+					}
+				}
+				a=a+paso;
 			}
-			//cout << "i = " << xmax << endl;
 		}
+
 		//cout << "Salio del bucle " << endl;
 		//Calculo el maximo y su posicion
 		minMaxLoc(acu, &min, &max, &min_loc, &max_loc);
 
 		//Introducimos los valores del maximo en la matrizMaximo
 		matrizMaximo[l-1][0] = max;
-		matrizMaximo[l-1][1] = max_loc.x;
-		matrizMaximo[l-1][2] = max_loc.y;
+		matrizMaximo[l-1][1] = max_loc.x*paso+Xmin;
+		matrizMaximo[l-1][2] = max_loc.y*paso+Ymin;
 		matrizMaximo[l-1][3] = r;
 
 		//Liberamos la memoria de Acu
@@ -180,15 +185,22 @@ double** calcularHough(Mat &image, int radio){
 	//Aplicamos los gradientes para hallar los bordes de la imagen
 	image = gradient(image);
 
+
 	//image.convertTo(image, CV_8UC1);
-	    double min;
-		double max;
-		minMaxIdx(image, &min, &max);
-		Mat adjMap;
-		convertScaleAbs(image, adjMap, 255 / max);
+	double min;
+	double max;
+	minMaxIdx(image, &min, &max);
+	Mat adjMap;
+	convertScaleAbs(image, adjMap, 255 / max);
+
+	int N = 20;			//Numero de puntos blancos aleatorios
+
+	Vector<Point> puntosBlancosTotales = findOnes(edge( binarizar(adjMap) , adjMap));
+	Point centroGravedad = Centrodegravedad (puntosBlancosTotales);
+	Vector<Point> randomBlancos =  Get_Randon_points (puntosBlancosTotales, N);
 
 	//Calculamos hough a partir de la imagen con bordes y esa misma imagen binarizada
-	return hough( edge( binarizar(adjMap) , adjMap) , radio);
+	return hough( randomBlancos, centroGravedad, radio);
 }
 
 //--------------------------------------------------------------------------------------------------------------------

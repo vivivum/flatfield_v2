@@ -219,7 +219,7 @@ Mat edge(const Mat& binarized, const Mat& gradient){
 //--------------------------------------------------------------------------------------------------------------------
 
 /**
- *  Calculates threshold for the binarization
+ *  Calculates threshold for the binarization Otzu method
  *
  *  @param im_in	Image to which calculate threshold
  *  @param xmax		X size of image
@@ -365,6 +365,78 @@ Vector<Point> findOnes (const Mat& im_in){
 				VectorCoordenadas.push_back(Point(i, j));
 			}
 		}
+	}
+
+	return VectorCoordenadas;
+}
+//--------------------------------------------------------------------------------------------------------------------
+
+//--------------------------------------------------------------------------------------------------------------------
+
+
+/**
+ *  Calculamo el centro de gravedad de la imagen como aproximacion al centro de la misma
+ *  y asi aplicar Hough entorno al mismo minimizar coste computacionaly
+ *
+
+ *
+ *  @param im_in Contiene la imagen a analizar
+ *
+ *  @return Point Devolvemos las coordenadas del centro
+ */
+Point Centrodegravedad (const Vector<Point> puntos){
+	Point centroide(0,0);
+	double x = 0;
+	double y = 0;
+	for (unsigned int i=0; i < puntos.size(); i++){
+		x += puntos[i].x;
+		y += puntos[i].y;
+	}
+
+	x /= puntos.size();
+	y /= puntos.size();
+
+	centroide.x = x;
+	centroide.y = y;
+
+	return centroide;
+}
+//--------------------------------------------------------------------------------------------------------------------
+
+//--------------------------------------------------------------------------------------------------------------------
+
+
+/**
+ *  Get a randon N point from points array. el centro de gravedad de la imagen como aproximacion al centro de la misma
+ *  y asi aplicar Hough entorno al mismo minimizar coste computacionaly
+ *
+
+ *
+ *  @param points points array
+ *  @N numbers of random points, N< length of points arrays
+ *
+ *  @return Point arrays of coordinates of points of solar circle
+ */
+Vector<Point> Get_Randon_points (const Vector<Point> puntos,int N){
+	if(N >= (int) puntos.size()){
+		return puntos;
+	}
+
+	Vector<Point> VectorCoordenadas;
+	bool *mascara = new bool[puntos.size()];
+	for (unsigned int j=0; j < puntos.size(); j++){
+		mascara[j] = false;
+	}
+	//Vector<bool> mascara = new Vector<bool>[(int)puntos.size()];
+	int posicion;
+	srand (time(NULL));
+	for(int i=0; i < N; i++){
+		do{
+			posicion = rand() % puntos.size();
+		}while(mascara[posicion]);
+		mascara[posicion] = true;
+
+		VectorCoordenadas.push_back(puntos[posicion]);
 	}
 
 	return VectorCoordenadas;

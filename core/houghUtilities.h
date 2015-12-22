@@ -4,8 +4,10 @@
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include <iostream>
+#include <stdlib.h>     /* srand, rand */
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
 #include "utility.hpp"
 using namespace cv;
 using namespace std;
@@ -38,6 +40,8 @@ Vector<int> findMaximo (const Mat& im_in, int radio);
 Vector<int> findMasVotado (int** matrizMaximos, const int size);
 void diferenciaPosiciones(double** centrosMedia);
 double** calcularMediaCentros(double** centros, double** centrosRotados);
+Vector<Point> Get_Randon_points (const Vector<Point> puntos,int N);
+Point Centrodegravedad (const Vector<Point> puntos);
 
 
 #endif
