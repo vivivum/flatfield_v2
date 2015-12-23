@@ -205,6 +205,7 @@ Mat edge(const Mat& binarized, const Mat& gradient){
 	binarized.convertTo(image, CV_32SC1);
 	imwrite( "image.tiff", image );
 */
+
 	imshow("edgeimage", edgeImage);
 	waitKey(0);
 	imshow("binarizada", binarized);
@@ -212,9 +213,7 @@ Mat edge(const Mat& binarized, const Mat& gradient){
 	imshow("gradiente", gradient);
 	waitKey(0);
 
-
-
-	return edgeImage;
+	return gradient;
 }
 //--------------------------------------------------------------------------------------------------------------------
 
@@ -361,7 +360,7 @@ Vector<Point> findOnes (const Mat& im_in){
 	for (int i=0; i < xmax; i++){
 		for (int j=0; j < ymax; j++){
 			//Si el valor de la imagen en el pixel X,Y es blanco lo guardamos
-			if((im_in.at<ushort>(j,i)) == MAX_BRIGHTNESS){
+			if((im_in.at<ushort>(j,i)) == MAX_BRIGHTNESS_8){
 				VectorCoordenadas.push_back(Point(i, j));
 			}
 		}
@@ -399,6 +398,7 @@ Point Centrodegravedad (const Vector<Point> puntos){
 	centroide.x = x;
 	centroide.y = y;
 
+	cout << "Centroide.X: " << centroide.x  << "\tCentroide.Y: " << centroide.y << endl;
 	return centroide;
 }
 //--------------------------------------------------------------------------------------------------------------------
@@ -439,6 +439,7 @@ Vector<Point> Get_Randon_points (const Vector<Point> puntos,int N){
 		VectorCoordenadas.push_back(puntos[posicion]);
 	}
 
+	cout << "Vector Random Points Size: "  << VectorCoordenadas.size() << "\tN: " << N << endl;
 	return VectorCoordenadas;
 }
 //--------------------------------------------------------------------------------------------------------------------

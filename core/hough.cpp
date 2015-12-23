@@ -19,12 +19,13 @@ double** hough(const Vector<Point> puntos, Point Centro, int radio ){
 	int aa,bb;
 	float a,b;
 	int lmax;
-	int dimensionAcumulador = 200;//ojo que es uno mas
+	int dimensionAcumulador = 2000;//ojo que es uno mas
 
 	//Contendran los valores y posiciones de los pixeles max y min de la imagen
 	double min,max;
 	Point min_loc, max_loc;
 
+	int xmax = 2048;
 
 	float paso=0.1;
 	float Xmin,Xmax;
@@ -34,11 +35,15 @@ double** hough(const Vector<Point> puntos, Point Centro, int radio ){
 	Ymin=Centro.y-paso*(dimensionAcumulador/2);// Ymin and Ymax are boundaries of coordinates of initial center
 	Ymax=Centro.y+paso*(dimensionAcumulador/2);
 
+	cout << Xmin << " " << Xmax << " "<< Ymin << " "<< Ymax << endl;
+
 	//Calculamos cuantas pasadas realizaremos teniendo en cuenta el tamaño
 	//de la imagen y nos aseguramos que se un numero impar
-	lmax = (double)PORCENTAJE/100 * Xmax;
+	lmax = (double)PORCENTAJE/100 * xmax;
 	if(lmax%2 == 0)
 		lmax++;
+
+	cout <<"LMAX: "  << lmax << endl;
 
 	//Creamos la matriz de Maximos, la cual contendra los mejores candidatos de cada pasada
 	double** matrizMaximo = new double*[lmax];
@@ -54,21 +59,27 @@ double** hough(const Vector<Point> puntos, Point Centro, int radio ){
 		//Inicializamos el Acumulador
 		Mat acu(dimensionAcumulador,dimensionAcumulador, CV_16UC1, Scalar(0));
 
-
+//int htr;
 		for(unsigned int h=0; h < puntos.size();h++){//get points from vector point puntos
 			a=Xmin;
-			while (a<=Xmax) {
-			//for(a=Xmi; a < Xmax; a++){
+			//while (a<=Xmax) {
+			for(a=Xmin; a < Xmax; a+=paso){
+				//cout << "A: " << a << endl;
 				det = r*r - (puntos[h].x-a)*(puntos[h].x-a);
 				if(det > 0){
 					b=(puntos[h].y-sqrt(det));
+					//cout << "B: " << b << endl;
+					//cin >> htr;
 					if((b > Ymin) && (b < Ymax)){
 						aa=round((a-Xmin)/paso);
 						bb=round((b-Ymin)/paso);
 						acu.at<ushort>(aa,bb) = acu.at<ushort>(aa,bb)+1;
+						//cout << "ACU: " << acu.at<ushort>(aa,bb) << endl;
+						//cout << "AA: "  << aa << "\tBB: " << bb << endl << endl;
+						//cin >> htr;
 					}
 				}
-				a=a+paso;
+				//a=a+paso;
 			}
 		}
 
@@ -76,6 +87,7 @@ double** hough(const Vector<Point> puntos, Point Centro, int radio ){
 		//Calculo el maximo y su posicion
 		minMaxLoc(acu, &min, &max, &min_loc, &max_loc);
 
+		cout << "Max: " << max << ", " << max_loc << "\tMin: " << min << ", " << min_loc << endl;
 		//Introducimos los valores del maximo en la matrizMaximo
 		matrizMaximo[l-1][0] = max;
 		matrizMaximo[l-1][1] = max_loc.x*paso+Xmin;
@@ -85,7 +97,7 @@ double** hough(const Vector<Point> puntos, Point Centro, int radio ){
 		//Liberamos la memoria de Acu
 		acu.release();
 	}
-	//cout <<"final hough"<<  endl;
+	cout <<"final hough"<<  endl;
 	return matrizMaximo;
 }
 
@@ -193,10 +205,18 @@ double** calcularHough(Mat &image, int radio){
 	Mat adjMap;
 	convertScaleAbs(image, adjMap, 255 / max);
 
-	int N = 20;			//Numero de puntos blancos aleatorios
+	imwrite("gradEscalado.png", adjMap);
 
-	Vector<Point> puntosBlancosTotales = findOnes(edge( binarizar(adjMap) , adjMap));
+	minMaxIdx(adjMap, &min, &max);
+	cout << "Minimo: " << min << "\tMaximo: " << max << endl;
+
+
+	Mat binarizada = binarizar(adjMap);
+
+	Vector<Point> puntosBlancosTotales = findOnes(binarizada);
 	Point centroGravedad = Centrodegravedad (puntosBlancosTotales);
+	int N = 100;			//Numero de puntos blancos aleatorios
+	cout << "N: " << N << endl;
 	Vector<Point> randomBlancos =  Get_Randon_points (puntosBlancosTotales, N);
 
 	//Calculamos hough a partir de la imagen con bordes y esa misma imagen binarizada
