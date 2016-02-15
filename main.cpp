@@ -39,11 +39,12 @@ int main(int argc, char** argv) {
 		imageName[9] = 48 + i;					//El 48 es el 0 en ASCII, con lo que sustituimos la X por el numero de la imagen en cada pasada en la posicion 9
 		
 		datacube.push_back(imread(imageName, -1));
-		datacube[i].convertTo(datacube[i], CV_64F);	//OJO leer un solo canal CV_32FC1!!!!!!!!!!!
+		//datacube[i].convertTo(datacube[i], CV_64FC1);	//OJO leer un solo canal CV_32FC1!!!!!!!!!!!
+		datacube[i].convertTo(datacube[i], CV_32FC1);	//OJO leer un solo canal CV_32FC1!!!!!!!!!!!
 
 	}
 
-	//Creamos la matriz de centros de las imagenes desplazadas
+	//Creamos la matriz de centros de las imagenes desplazadas [NUMERO_IMAGENES][2 coordenadas]
 	double** centros = new double*[NUMERO_IMAGENES];
 	for (int i = 0; i < NUMERO_IMAGENES; i++)
 		centros[i] = new double[2];
@@ -64,7 +65,7 @@ int main(int argc, char** argv) {
 	if(lmax%2 == 0)		//Compruebo que sea impar
 		lmax++;
 
-	cout << "LMAX: " << lmax << endl;
+	cout << "LMAXXX: " << lmax << endl;
 	//-------------------------------------------------
 
 	//****************************************************************************************
@@ -72,6 +73,8 @@ int main(int argc, char** argv) {
 	ofstream fs("EstadisticasdeCentro.txt");
 	for(int i=0; i < NUMERO_IMAGENES; i++){
 		matrizResultadosHough.push_back(calcularHough(datacube[i], RADIO_INICIAL));	//Es una matriz de la dimension lmax*4 (votacion, x, y, radio)
+		cout << "Pasada: " <<i << endl;
+
 		#ifdef STATS
 			for (int j=0; j < lmax; j++){
 				for(int h=0; h < 4; h++){
@@ -92,40 +95,43 @@ int main(int argc, char** argv) {
 	}
 	fs.close();
 
-	//****************************************************************************************
-	//OPERACION ROTADA, VOLVEMOS A HACER LA MISMA OPERACION CON LAS IMAGENES ROTADAS Y EL FLIP
-	Mat fliped;
-	fliped.convertTo(fliped, CV_64F);
-	Vector<double**> matrizResultadosHough2;
-	ofstream fs2("EstadisticasdeCentro_rotados.txt");
-	for(int i=0; i < NUMERO_IMAGENES; i++){
-		flip(rotate(datacube[i], -90),fliped,1);
-		matrizResultadosHough2.push_back(calcularHough(fliped, 960)); 	//Es una matriz de la dimension lmax*4 (votacion, x, y, radio)
+	cout << "Hough Finalizado" << endl;
 
-		#ifdef STATS
-			for (int j=0; j < lmax;j++){
-				for(int h=0; h < 4; h++){
-					fs2 << matrizResultadosHough2[i][j][h] << "\t";
-				}
-				fs2 << endl;
-			}
-			fs2 << endl;
-		#endif
-
-		#ifndef STATS
-			centrosRotados[i][1] = matrizResultadosHough[i][1];					//Cogemos el valor del centro X
-			centrosRotados[i][0] = matrizResultadosHough[i][2];					//Cogemos el valor del centro Y
-			cout << "Imagen Manual " << i << ": " << centrosRotados[i][0] << ", " << centrosRotados[i][1] << endl;
-		#endif
-
-	}
-	fs2.close();
-	//***************************************************
-
-	cout << "Hough Finalizado\n\nMostramos las diferencias de los centros" << endl;
-
-	double** centrosMedia = calcularMediaCentros(centros, centrosRotados);
-	diferenciaPosiciones(centrosMedia); //Desplazamientos relativos a la primera desplazada
+//
+//	//****************************************************************************************
+//	//OPERACION ROTADA, VOLVEMOS A HACER LA MISMA OPERACION CON LAS IMAGENES ROTADAS Y EL FLIP
+//	Mat fliped;
+//	fliped.convertTo(fliped, CV_64F);
+//	Vector<double**> matrizResultadosHough2;
+//	ofstream fs2("EstadisticasdeCentro_rotados.txt");
+//	for(int i=0; i < NUMERO_IMAGENES; i++){
+//		flip(rotate(datacube[i], -90),fliped,1);
+//		matrizResultadosHough2.push_back(calcularHough(fliped, RADIO_INICIAL)); 	//Es una matriz de la dimension lmax*4 (votacion, x, y, radio)
+//
+//		#ifdef STATS
+//			for (int j=0; j < lmax;j++){
+//				for(int h=0; h < 4; h++){
+//					fs2 << matrizResultadosHough2[i][j][h] << "\t";
+//				}
+//				fs2 << endl;
+//			}
+//			fs2 << endl;
+//		#endif
+//
+//		#ifndef STATS
+//			centrosRotados[i][1] = matrizResultadosHough[i][1];					//Cogemos el valor del centro X
+//			centrosRotados[i][0] = matrizResultadosHough[i][2];					//Cogemos el valor del centro Y
+//			cout << "Imagen Manual " << i << ": " << centrosRotados[i][0] << ", " << centrosRotados[i][1] << endl;
+//		#endif
+//
+//	}
+//	fs2.close();
+//	//***************************************************
+//
+//	cout << "Hough ROTADO Finalizado\n\nMostramos las diferencias de los centros" << endl;
+//
+//	double** centrosMedia = calcularMediaCentros(centros, centrosRotados);
+//	diferenciaPosiciones(centrosMedia); //Desplazamientos relativos a la primera desplazada
 
 
 //	for(int i=0; i < 9; i++){
